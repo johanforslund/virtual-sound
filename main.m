@@ -1,10 +1,9 @@
 clear 
 clc
 
-fileReader = dsp.AudioFileReader('x1.wav');
-fileReader.SamplesPerFrame = 512;
-fileReader.PlayCount = 2;
-deviceWriter = audioDeviceWriter('SampleRate',fileReader.SampleRate);
+fileReaders = createFileReaders();
+
+deviceWriter = audioDeviceWriter('SampleRate',fileReaders{1}.SampleRate);
 deviceWriter.Driver = 'ASIO';
 
 m = mobiledev;
@@ -21,18 +20,26 @@ for i=73:1:96
     impulseResponses(:, :, i-72) = [leftResponse; rightResponse]';
 end
 
-while ~isDone(fileReader)
-    signal = fileReader();
-    
-    if m.Orientation %Kolla att m tar emot från sensorn
-        impulseResponse = impulseResponses(:, :, getAngleIndex(m.Orientation));
-    else
-        impulseResponse = impulseResponses(:, :, 1); %Standard respons, vinkel = 0 grader
+signals = cell(24, 1);
+
+while ~isDone(fileReaders{1})
+    for i=1:24
+        fileReader = fileReaders{i, 1};
+        signals{i, 1} = fileReader();
     end
     
-    convolutedSignal = HRIRconv(signal, impulseResponse);
-    deviceWriter(convolutedSignal);
+    if m.Orientation
+        angleIndex = getAngleIndex(m.Orientation);
+    else
+        angleIndex = 1;
+    end
+    
+    signal = signals{angleIndex, 1};
+    
+    deviceWriter(signal);
 end
 
-release(fileReader);
+for i=1:24
+    release(fileReaders{i, 1});
+end
 release(deviceWriter);
