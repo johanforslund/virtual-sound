@@ -1,4 +1,4 @@
-function output_data = Convolutionreverb(audio, IRfile)
+function output_data = HRIRconv(audio, IRfile)
 
 left_imp=IRfile(:,1);
 right_imp=IRfile(:,2);

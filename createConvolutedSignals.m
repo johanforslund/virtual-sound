@@ -2,7 +2,7 @@ HRIR = load('HRIR.mat');
 
 impulseResponses = zeros(512, 2, 24);
 
-[signal, fs] = audioread('x1.wav');
+[signal, fs] = audioread('audio/vocals.mp3');
 
 for i=73:1:96
     leftResponse = HRIR.l_eq_hrir_S.content_m(i, :);
@@ -14,7 +14,7 @@ for i=1:24
     impulseResponse = impulseResponses(:, :, i);
     convolutedSignal = HRIRconv(signal(:, 1), impulseResponse);
 
-    audiowrite(['x1-', num2str(i), '.wav'], convolutedSignal, fs);
+    audiowrite(['audio/x1-', num2str(i), '.wav'], convolutedSignal, fs);
 end
 
 disp('All files created');

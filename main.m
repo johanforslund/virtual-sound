@@ -3,6 +3,11 @@ clc
 
 fileReaders = createFileReaders();
 
+fileReaderBackground = dsp.AudioFileReader('audio/background.mp3');
+fileReaderBackground.SamplesPerFrame = 512/2;
+fileReaderBackground.PlayCount = 2;
+
+disp(fileReaders{1}.SampleRate);
 deviceWriter = audioDeviceWriter('SampleRate',fileReaders{1}.SampleRate);
 deviceWriter.Driver = 'ASIO';
 
@@ -28,6 +33,8 @@ while ~isDone(fileReaders{1})
         signals{i, 1} = fileReader();
     end
     
+    backgroundSignal = fileReaderBackground();
+    
     if m.Orientation
         angleIndex = getAngleIndex(m.Orientation);
     else
@@ -35,6 +42,7 @@ while ~isDone(fileReaders{1})
     end
     
     signal = signals{angleIndex, 1};
+    signal = signal + backgroundSignal;
     
     deviceWriter(signal);
 end
@@ -42,4 +50,5 @@ end
 for i=1:24
     release(fileReaders{i, 1});
 end
+release(fileReaderBackground);
 release(deviceWriter);
